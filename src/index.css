@@ -1,17 +1,17 @@
-/* Paleta "Astera": madera y cuero de noche, papel de campo de día; acento verde de insecto guía.
+/* Paleta: pizarra fría de noche, papel de campo de día; acento verde de insecto guía.
    Diseño oscuro por defecto; el tema claro se aplica por preferencia del sistema o por elección explícita. */
 :root {
-  --bg: #110f0b; --glow: #2e241a; --bg2: #1a1611; --card: #251f19; --card2: #342b22;
-  --line: #7a6a55; --line-strong: #9a8770; --text: #f7f0e3; --muted: #c8bca6;
-  --accent: #5ad69a; --accent2: #9cf0c6; --on-accent: #0b1f15; --accent-soft: #21503a;
-  --pos: #9ad870; --neg: #ff8b7b; --warn: #f2b25e; --danger-bg: #4d1f1a; --danger-line: #93433a; --bonus: #d3a9ff;
-  --s1: #8fd88f; --s2: #74b0ff; --s3: #eab65a; --s4: #d98af5;
-  --rar-bg: #3a3229; --rar-fg: #e3d8c4; --rar56-bg: #284a33; --rar56-fg: #b5efc4; --rar78-bg: #43305a; --rar78-fg: #e2c6ff;
-  --rar910-bg: #24425c; --rar910-fg: #b2d9ff; --rar11-bg: #5a3e1c; --rar11-fg: #ffd596; --rar12-bg: #5a2650; --rar12-fg: #ffbdf0;
+  --bg: #0d1014; --glow: #1a2230; --bg2: #12171d; --card: #182028; --card2: #222c36;
+  --line: #5c6e82; --line-strong: #7a8da1; --text: #f2f5f7; --muted: #b8c2cc;
+  --accent: #3ee08f; --accent2: #7cf0b6; --on-accent: #04140c; --accent-soft: #143a2a;
+  --pos: #9be37c; --neg: #ff8f87; --warn: #ffc266; --danger-bg: #4a1c1c; --danger-line: #a04545; --bonus: #d4b0ff;
+  --s1: #8fe08f; --s2: #7ab6ff; --s3: #f0c060; --s4: #dd90f8;
+  --rar-bg: #2c3642; --rar-fg: #dfe6ee; --rar56-bg: #1f4a32; --rar56-fg: #b8f2c8; --rar78-bg: #3d2e5c; --rar78-fg: #e3cdff;
+  --rar910-bg: #1f3f60; --rar910-fg: #b8dcff; --rar11-bg: #563c18; --rar11-fg: #ffd99a; --rar12-bg: #55224d; --rar12-fg: #ffc2f2;
   --el-fire: #ff7f52; --el-water: #52b8ff; --el-thunder: #ffe15a; --el-ice: #a8ecff; --el-dragon: #d877ff;
   --el-blast: #ffb25a; --el-poison: #c486ff; --el-paralysis: #f0de62; --el-sleep: #92dbff;
-  --track: #050403; --hatch: rgba(255, 255, 255, 0.14); --pip: #7a6a52; --pip-gap: #1a1611;
-  --backdrop: rgba(8, 6, 4, 0.7); --shadow: rgba(0, 0, 0, 0.55);
+  --track: #05070a; --hatch: rgba(255, 255, 255, 0.16); --pip: #5a6b7e; --pip-gap: #12171d;
+  --backdrop: rgba(3, 5, 8, 0.72); --shadow: rgba(0, 0, 0, 0.6);
   --radius: 10px;
   color-scheme: dark;
   font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
