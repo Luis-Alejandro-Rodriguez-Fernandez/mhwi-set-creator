@@ -9,6 +9,8 @@ import { Sidebar } from './components/Sidebar'
 import { Optimizer } from './components/Optimizer'
 import { ARMOR_TYPES } from './types'
 import type { OptimizerResult } from './optimizer/core'
+import { confirmAsync, showText } from './logic/dialog'
+import { DialogHost } from './components/DialogHost'
 
 type Tab = 'builder' | 'optimizer'
 
@@ -74,8 +76,8 @@ function Main({ data }: { data: GameData }) {
     setBuilds((bs) => [...bs, b])
     notify('Guardada como nueva build')
   }
-  const select = (b: Build) => {
-    if (dirty && build.id !== b.id && (computed.weapon || ARMOR_TYPES.some((t) => build.armor[t].id != null)) && !confirm('Hay cambios sin guardar en la build actual. ¿Descartarlos?')) return
+  const select = async (b: Build) => {
+    if (dirty && build.id !== b.id && (computed.weapon || ARMOR_TYPES.some((t) => build.armor[t].id != null)) && !(await confirmAsync('Hay cambios sin guardar en la build actual. ¿Descartarlos?', { confirmLabel: 'Descartar', danger: true }))) return
     setBuild(structuredClone(b))
     setMenuOpen(false)
     setTab('builder')
@@ -86,7 +88,7 @@ function Main({ data }: { data: GameData }) {
       await navigator.clipboard.writeText(url)
       notify('Enlace copiado al portapapeles')
     } catch {
-      prompt('Copia este enlace:', url)
+      showText('Copia este enlace:', url)
     }
   }
   const applyResult = (r: OptimizerResult) => {
@@ -148,7 +150,7 @@ function Main({ data }: { data: GameData }) {
                 <button className="btn primary" onClick={save}>{savedVersion ? (dirty ? 'Guardar cambios' : 'Guardado ✓') : 'Guardar'}</button>
                 {savedVersion && <button className="btn ghost" onClick={saveAsNew}>Guardar como nueva</button>}
                 <button className="btn ghost" onClick={share}>Compartir enlace</button>
-                <button className="btn ghost" onClick={() => confirm('¿Vaciar todo el equipo de esta build?') && update((b) => { const e = emptyBuild(b.name); b.weapon = e.weapon; b.armor = e.armor; b.charm = null })}>Vaciar</button>
+                <button className="btn ghost" onClick={async () => (await confirmAsync('¿Vaciar todo el equipo de esta build?', { confirmLabel: 'Vaciar', danger: true })) && update((b) => { const e = emptyBuild(b.name); b.weapon = e.weapon; b.armor = e.armor; b.charm = null })}>Vaciar</button>
               </div>
               <textarea className="notes" placeholder="Notas (rotación, objetivo, monstruo…)" value={build.notes} onChange={(e) => update((b) => { b.notes = e.target.value })} rows={1} />
             </div>
@@ -170,6 +172,7 @@ function Main({ data }: { data: GameData }) {
           Datos: <a href="https://github.com/gatheringhallstudios/MHWorldData" target="_blank" rel="noreferrer">MHWorldData</a> (MIT) · Las builds se guardan solo en este navegador · Proyecto de fans, sin relación con Capcom.
         </footer>
         {toast && <div className="toast">{toast}</div>}
+        <DialogHost />
       </div>
     </AppCtx.Provider>
   )
