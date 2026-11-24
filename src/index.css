@@ -1,16 +1,16 @@
 /* Paleta "Astera": madera y cuero de noche, papel de campo de día; acento verde de insecto guía.
    Diseño oscuro por defecto; el tema claro se aplica por preferencia del sistema o por elección explícita. */
 :root {
-  --bg: #15120e; --glow: #2b2219; --bg2: #1b1712; --card: #221d17; --card2: #2d261e;
-  --line: #40362b; --line-strong: #574a3b; --text: #f0e8d8; --muted: #b3a690;
-  --accent: #4fc98e; --accent2: #86e0b2; --on-accent: #0b1f15; --accent-soft: #1d3a2c;
+  --bg: #110f0b; --glow: #2e241a; --bg2: #1a1611; --card: #251f19; --card2: #342b22;
+  --line: #7a6a55; --line-strong: #9a8770; --text: #f7f0e3; --muted: #c8bca6;
+  --accent: #5ad69a; --accent2: #9cf0c6; --on-accent: #0b1f15; --accent-soft: #21503a;
   --pos: #9ad870; --neg: #ff8b7b; --warn: #f2b25e; --danger-bg: #4d1f1a; --danger-line: #93433a; --bonus: #d3a9ff;
   --s1: #8fd88f; --s2: #74b0ff; --s3: #eab65a; --s4: #d98af5;
   --rar-bg: #3a3229; --rar-fg: #e3d8c4; --rar56-bg: #284a33; --rar56-fg: #b5efc4; --rar78-bg: #43305a; --rar78-fg: #e2c6ff;
   --rar910-bg: #24425c; --rar910-fg: #b2d9ff; --rar11-bg: #5a3e1c; --rar11-fg: #ffd596; --rar12-bg: #5a2650; --rar12-fg: #ffbdf0;
   --el-fire: #ff7f52; --el-water: #52b8ff; --el-thunder: #ffe15a; --el-ice: #a8ecff; --el-dragon: #d877ff;
   --el-blast: #ffb25a; --el-poison: #c486ff; --el-paralysis: #f0de62; --el-sleep: #92dbff;
-  --track: #0d0b08; --hatch: rgba(255, 255, 255, 0.14); --pip: #40362b; --pip-gap: #1b1712;
+  --track: #050403; --hatch: rgba(255, 255, 255, 0.14); --pip: #7a6a52; --pip-gap: #1a1611;
   --backdrop: rgba(8, 6, 4, 0.7); --shadow: rgba(0, 0, 0, 0.55);
   --radius: 10px;
   color-scheme: dark;
@@ -215,7 +215,7 @@ h3 { font-size: 1rem; margin-bottom: 8px; color: var(--accent2); }
 .lvl.maxed { color: var(--accent2); }
 .pips { display: flex; gap: 3px; margin: 3px 0; }
 .pip { width: 16px; height: 6px; border-radius: 2px; background: var(--pip); }
-.pip.on { background: var(--accent); }
+.pip.on { background: var(--accent2); }
 .pip.locked { background: repeating-linear-gradient(45deg, var(--pip) 0 2px, var(--pip-gap) 2px 4px); }
 .desc { font-size: 0.78rem; }
 
