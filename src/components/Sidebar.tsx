@@ -3,6 +3,7 @@ import { nameOf, weaponTypeInfo } from '../logic/data'
 import { useApp } from '../logic/context'
 import type { Build } from '../logic/build'
 import { exportBuildsFile, parseImport } from '../logic/storage'
+import { confirmAsync } from '../logic/dialog'
 
 interface Props {
   builds: Build[]
@@ -41,7 +42,7 @@ export function Sidebar({ builds, currentId, dirty, onSelect, onNew, onDelete, o
               </button>
               <div className="build-actions">
                 <button className="icon-btn" title="Duplicar" onClick={() => onDuplicate(b)}>⧉</button>
-                <button className="icon-btn" title="Eliminar" onClick={() => confirm(`¿Eliminar "${b.name}"?`) && onDelete(b.id)}>🗑</button>
+                <button className="icon-btn" title="Eliminar" onClick={async () => (await confirmAsync(`¿Eliminar "${b.name}"? No se puede deshacer.`, { confirmLabel: 'Eliminar', danger: true })) && onDelete(b.id)}>🗑</button>
               </div>
             </li>
           )

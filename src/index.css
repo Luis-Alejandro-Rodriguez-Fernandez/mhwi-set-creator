@@ -248,3 +248,6 @@ h3 { font-size: 1rem; margin-bottom: 8px; color: var(--accent2); }
 .slot-icon > span { transform: rotate(-45deg); }
 .result-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .result-head > div { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; flex: 1; min-width: 0; }
+.modal.dialog { width: min(440px, 100%); padding: 18px; gap: 14px; }
+.dialog-msg { margin: 0; }
+.dialog-actions { justify-content: flex-end; }
