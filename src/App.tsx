@@ -14,6 +14,9 @@ import { DialogHost } from './components/DialogHost'
 
 type Tab = 'builder' | 'optimizer'
 
+// Tema que haya fijado el entorno (p. ej. un visor embebido) antes de que la app lo toque
+const hostTheme = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : null
+
 export default function App() {
   const [data, setData] = useState<GameData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,6 +50,12 @@ function Main({ data }: { data: GameData }) {
 
   useEffect(() => { saveDraft(build) }, [build])
   useEffect(() => { savePrefs(prefs) }, [prefs])
+  useEffect(() => {
+    const root = document.documentElement
+    const value = prefs.theme === 'auto' ? hostTheme : prefs.theme
+    if (value) root.setAttribute('data-theme', value)
+    else root.removeAttribute('data-theme')
+  }, [prefs.theme])
   useEffect(() => { if (!saveBuilds(builds)) notify('No se pudo guardar en localStorage') }, [builds, notify])
 
   const update = useCallback((fn: (b: Build) => void) => {
@@ -119,6 +128,11 @@ function Main({ data }: { data: GameData }) {
             <button className={tab === 'builder' ? 'on' : ''} onClick={() => setTab('builder')}>Constructor</button>
             <button className={tab === 'optimizer' ? 'on' : ''} onClick={() => setTab('optimizer')}>Optimizador</button>
           </nav>
+          <div className="theme" role="group" aria-label="Tema">
+            {([['auto', 'Auto', 'Seguir el sistema'], ['light', '☀', 'Tema claro'], ['dark', '☾', 'Tema oscuro']] as const).map(([k, label, title]) => (
+              <button key={k} className={prefs.theme === k ? 'on' : ''} title={title} aria-label={title} aria-pressed={prefs.theme === k} onClick={() => setPrefs((p) => ({ ...p, theme: k }))}>{label}</button>
+            ))}
+          </div>
           <div className="lang">
             <button className={prefs.lang === 'es' ? 'on' : ''} onClick={() => setPrefs((p) => ({ ...p, lang: 'es' }))}>ES</button>
             <button className={prefs.lang === 'en' ? 'on' : ''} onClick={() => setPrefs((p) => ({ ...p, lang: 'en' }))}>EN</button>
