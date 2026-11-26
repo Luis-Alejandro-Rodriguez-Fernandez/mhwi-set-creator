@@ -295,3 +295,18 @@ h3 { font-size: 1rem; margin-bottom: 8px; color: var(--accent2); }
 .applied { margin-bottom: 10px; }
 .applied ul { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
 .applied li b { color: var(--bonus); font-weight: 600; }
+.support details > summary { list-style: none; cursor: pointer; }
+.support details > summary::-webkit-details-marker { display: none; }
+.support-title { flex: 1; min-width: 0; font-weight: 600; }
+.support details[open] > summary .support-title { color: var(--accent2); }
+.support-body { gap: 14px; }
+.support-body h4 { margin: 0 0 6px; font-size: 0.9rem; font-weight: 600; }
+.support-body p { margin: 0 0 6px; }
+.support-checks { display: flex; flex-direction: column; gap: 5px; }
+.support-checks.row-wrap { flex-direction: row; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; }
+.support-checks .check { align-items: flex-start; }
+.support-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.support-field { display: flex; flex-direction: column; gap: 3px; }
+.support-field select { background: var(--bg2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 6px; }
+.support-reset { align-self: flex-start; }
+.step:disabled { opacity: 0.35; cursor: not-allowed; }

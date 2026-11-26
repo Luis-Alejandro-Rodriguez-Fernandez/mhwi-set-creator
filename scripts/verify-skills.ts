@@ -96,5 +96,46 @@ const check = (name: string, got: number, want: number) => {
   check('Migración extraAugment → nivel 2', old.weapon.augmentLevel, 2)
 }
 
+
+// --- Cantina y consumibles
+{
+  const w = weaponBy((x) => x.rarity >= 10 && x.elements.length === 0 && x.type === 'long-sword') ?? weaponBy((x) => x.rarity >= 10 && x.elements.length === 0)
+  const b = emptyBuild()
+  b.weapon.id = w.id
+  b.conditions = {}
+  b.support.charms = { powercharm: false, powertalon: false, armorcharm: false, armortalon: false }
+  const base = computeBuild(b, data)
+  b.support.meal.attack = 3 // carne L +15
+  b.support.attackDrug = 'mega' // +7
+  b.support.attackSeed = 'demonPowder' // +10
+  b.support.charms.powercharm = true // +6
+  b.support.charms.powertalon = true // +9
+  let c = computeBuild(b, data)
+  check('Cantina y objetos: ataque real (+47)', c.stats!.trueRaw, Math.round((base.stats!.trueRaw + 47) * 10) / 10)
+  b.support.attackSeed = 'mightPill' // sustituye al polvo: +25
+  c = computeBuild(b, data)
+  check('Píldora de poder sustituye a la semilla (+62)', c.stats!.trueRaw, Math.round((base.stats!.trueRaw + 62) * 10) / 10)
+  b.support.meal.defense = 0
+  b.support.defenseDrug = 'mega' // +25
+  b.support.defenseSeed = 'hardshell' // +20
+  b.support.charms.armorcharm = true // +12
+  b.support.charms.armortalon = true // +18
+  c = computeBuild(b, data)
+  check('Objetos de defensa (+75)', c.defense, base.defense + 75)
+  b.support.defenseSeed = 'adamantPill' // +30% en lugar de +20
+  c = computeBuild(b, data)
+  check('Píldora armadura (+30%)', c.defense, Math.round((base.defense + 55) * 1.3))
+  b.support.foodSkills = ['heroics'] // +35% ataque
+  b.support.attackDrug = 'none'; b.support.attackSeed = 'none'; b.support.meal.attack = 0; b.support.charms.powercharm = false; b.support.charms.powertalon = false
+  c = computeBuild(b, data)
+  check('Felyne heroico: +35% ataque', c.stats!.trueRaw, Math.round(base.stats!.trueRaw * 1.35 * 10) / 10)
+}
+
+// --- Builds antiguas sin "support": se completan con los valores por defecto
+{
+  const old = normalizeBuild({ name: 'vieja' } as never)
+  check('Build antigua: amuletos de poder activados por defecto (1 = sí)', old.support.charms.powercharm ? 1 : 0, 1)
+}
+
 console.log(fails ? `\n${fails} fallo(s)` : '\nTodo correcto')
 if (fails) process.exit(1)

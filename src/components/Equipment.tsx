@@ -6,6 +6,7 @@ import { AUGMENT_CAPACITY, AUGMENT_EFFECT, AUGMENT_NAMES, AUGMENT_ORDER, CUSTOM_
 import { useApp } from '../logic/context'
 import { Picker } from './Picker'
 import { Rarity, SkillList, SlotIcon, Slots } from './bits'
+import { SupportCard } from './Support'
 
 type Update = (fn: (b: Build) => void) => void
 type RankFilter = 'MR' | 'HR' | 'ALL'
@@ -366,6 +367,7 @@ export function EquipmentList({ build, update, computed, rank, setRank }: { buil
         <ArmorCard key={t} type={t} build={build} update={update} piece={computed.pieces[t]} rank={rank} setRank={setRank} />
       ))}
       <CharmCard build={build} update={update} />
+      <SupportCard build={build} update={update} />
     </div>
   )
 }

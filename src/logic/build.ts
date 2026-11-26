@@ -8,6 +8,8 @@ import {
   OFFENSIVE_GUARD, PEAK_PERFORMANCE, PUNISHING_DRAW_RAW, RESENTMENT, SHARP_ELEM, SHARP_RAW, TRUE_DRAGONVEIN,
   TRUE_ELEMENT_ACCELERATION, WEAKNESS_EXPLOIT, at, augmentCost, critElementMult, critStatusMult, customBonus,
   sharpnessAt, upgradeSlots, type AugmentKey, type ConditionKey, type CustomKey,
+  ATTACK_DRUGS, ATTACK_SEEDS, CHARM_ITEMS, DEFENSE_DRUGS, DEFENSE_SEEDS, FOOD_SKILLS, MEAL_BONUS,
+  type CharmItemKey, type FoodSkillKey,
 } from './rules'
 
 export interface PieceState {
@@ -36,7 +38,31 @@ export interface Build {
   charm: number | null
   defenseMode: DefenseMode
   conditions: Partial<Record<ConditionKey, boolean | number>>
+  /** Comida de la cantina y objetos consumibles */
+  support: Support
 }
+
+export interface Support {
+  /** tamaño del bonus de la comida: 0 = nada, 1-3 = S/M/L */
+  meal: { attack: number; defense: number }
+  foodSkills: FoodSkillKey[]
+  attackDrug: string
+  attackSeed: string
+  defenseDrug: string
+  defenseSeed: string
+  charms: Record<CharmItemKey, boolean>
+}
+
+export const emptySupport = (): Support => ({
+  meal: { attack: 0, defense: 0 },
+  foodSkills: [],
+  attackDrug: 'none',
+  attackSeed: 'none',
+  defenseDrug: 'none',
+  defenseSeed: 'none',
+  // Los amuletos y garras se llevan siempre en la bolsa
+  charms: { powercharm: true, powertalon: true, armorcharm: true, armortalon: true },
+})
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
 
@@ -62,6 +88,7 @@ export function emptyBuild(name = 'Nueva build'): Build {
     charm: null,
     defenseMode: 'augmented',
     conditions: { weakspot: true, agitator: true, peak: true, elementConversion: true, dragonvein: true, elemAccel: true, frostcraft: 3 },
+    support: emptySupport(),
   }
 }
 
@@ -84,6 +111,13 @@ export function normalizeBuild(b: Partial<Build> & { weapon?: Partial<Build['wea
     },
     armor: Object.fromEntries(ARMOR_TYPES.map((t) => [t, { ...base.armor[t], ...b.armor?.[t] }])) as Record<ArmorType, PieceState>,
     conditions: { ...base.conditions, ...b.conditions },
+    support: {
+      ...base.support,
+      ...b.support,
+      meal: { ...base.support.meal, ...b.support?.meal },
+      charms: { ...base.support.charms, ...b.support?.charms },
+      foodSkills: [...(b.support?.foodSkills ?? [])],
+    },
   } as Build
 }
 
@@ -234,6 +268,29 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
   const customSum = (key: CustomKey) =>
     b.weapon.customUpgrades.reduce((s, k, i) => (k === key ? s + customBonus(key, i + 1) : s), 0)
 
+  // ---------- Cantina y consumibles ----------
+  const sp = b.support
+  const pickItem = (list: { key: string; attack?: number; defense?: number; defensePct?: number }[], key: string) => list.find((x) => x.key === key)
+  const food = FOOD_SKILLS.filter((f) => sp.foodSkills.includes(f.key))
+  const supportAttack =
+    MEAL_BONUS[sp.meal.attack] +
+    (pickItem(ATTACK_DRUGS, sp.attackDrug)?.attack ?? 0) +
+    (pickItem(ATTACK_SEEDS, sp.attackSeed)?.attack ?? 0) +
+    (sp.charms.powercharm ? CHARM_ITEMS.powercharm.attack : 0) +
+    (sp.charms.powertalon ? CHARM_ITEMS.powertalon.attack : 0) +
+    food.reduce((a, f) => a + ('attack' in f ? f.attack : 0), 0)
+  const supportAttackPct = food.reduce((a, f) => a + ('attackPct' in f ? f.attackPct : 0), 0)
+  const supportDefense =
+    MEAL_BONUS[sp.meal.defense] +
+    (pickItem(DEFENSE_DRUGS, sp.defenseDrug)?.defense ?? 0) +
+    (pickItem(DEFENSE_SEEDS, sp.defenseSeed)?.defense ?? 0) +
+    (sp.charms.armorcharm ? CHARM_ITEMS.armorcharm.defense : 0) +
+    (sp.charms.armortalon ? CHARM_ITEMS.armortalon.defense : 0) +
+    food.reduce((a, f) => a + ('defense' in f ? f.defense : 0), 0)
+  const supportDefensePct =
+    (pickItem(DEFENSE_SEEDS, sp.defenseSeed)?.defensePct ?? 0) + food.reduce((a, f) => a + ('defensePct' in f ? f.defensePct : 0), 0)
+  const supportStatus = food.reduce((a, f) => a + ('status' in f ? f.status : 0), 0)
+
   // ---------- Defensa y resistencias ----------
   const defIdx = b.defenseMode === 'base' ? 0 : b.defenseMode === 'max' ? 1 : 2
   let defense = 0
@@ -260,7 +317,8 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
     if (l >= 3) elemResDefense += 10
   })
   if (has('All Elemental Resistance')) for (let i = 0; i < 5; i++) res[i] += ALL_ELEMENTAL_RESISTANCE
-  defense = Math.round(defense * (1 + defPct / 100) + defFlat + elemResDefense)
+  defense = Math.round(defense * (1 + defPct / 100) + defFlat + elemResDefense + supportDefense)
+  if (supportDefensePct) defense = Math.round(defense * (1 + supportDefensePct / 100))
   if ((c.fortify as number) > 0 && has('Fortify')) defense = Math.round(defense * (1 + 0.15 * (c.fortify as number)))
 
   // ---------- Aumentos ----------
@@ -311,6 +369,15 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
     if (fortify) {
       pct += FORTIFY_PCT * fortify
       applied.push({ label: 'Bonus de desmayo', detail: `+${FORTIFY_PCT * fortify}% ataque, +${15 * fortify}% defensa` })
+    }
+    if (supportAttack || supportDefense || supportDefensePct) {
+      flat += supportAttack
+      const parts = [supportAttack && `+${supportAttack} ataque real`, supportDefense && `+${supportDefense} defensa`, supportDefensePct && `+${supportDefensePct}% defensa`]
+      applied.push({ label: 'Cantina y objetos', detail: parts.filter(Boolean).join(' · ') })
+    }
+    if (supportAttackPct) {
+      pct += supportAttackPct
+      applied.push({ label: 'Felyne heroico', detail: `+${supportAttackPct}% ataque` })
     }
     let mult = 1 + pct / 100
     if (has('Non-elemental Boost') && !hasElement) {
@@ -383,6 +450,7 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
         disp = disp * (1 + ePct / 100) + eFlat
         if (c.coalescence) disp += [0, 30, 60, 90][Math.min(3, lvl('Coalescence'))]
         if (dv) disp += isStatus ? dv.status : dv.element
+        if (isStatus && supportStatus) disp += supportStatus
         if (accel && !isStatus) disp += accel.element
         if (ecTrue && !isStatus) disp += ecTrue * 10
         disp *= 1 + frostPct / 100

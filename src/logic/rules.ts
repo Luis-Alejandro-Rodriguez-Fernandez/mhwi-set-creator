@@ -174,3 +174,56 @@ export const CONDITIONS: Condition[] = [
     options: [0, 1, 2].map((v) => ({ value: v, label: v ? `${v} desmayo${v > 1 ? 's' : ''}` : 'Sin desmayos' })),
   },
 ]
+
+// ---------------- Cantina y consumibles ----------------
+// Fuentes: wiki de Fextralife (páginas de cada objeto y "Canteen") y wiki de Fandom "MHWI: Canteen".
+// Los bonus de ataque son ataque real (sin multiplicador de arma).
+
+/** Comida de la cantina: carne → ataque, pescado → defensa. 2/4/6 ingredientes = S/M/L */
+export const MEAL_SIZES = ['–', 'S', 'M', 'L'] as const
+export const MEAL_BONUS = [0, 5, 10, 15]
+export const MEAL_INGREDIENTS = 6
+
+export interface ItemOption { key: string; es: string; note?: string; attack?: number; defense?: number; defensePct?: number }
+/** Drogas de ataque (no se acumulan entre sí; duran hasta desmayarte) */
+export const ATTACK_DRUGS: ItemOption[] = [
+  { key: 'none', es: 'Ninguna' },
+  { key: 'demondrug', es: 'Droga demoníaca', attack: 5 },
+  { key: 'mega', es: 'Megadroga demoníaca', attack: 7 },
+]
+/** Semillas, polvos y píldoras de ataque (efectos temporales que se sustituyen entre sí) */
+export const ATTACK_SEEDS: ItemOption[] = [
+  { key: 'none', es: 'Ninguna' },
+  { key: 'mightSeed', es: 'Semilla de poder', note: '180 s', attack: 10 },
+  { key: 'demonPowder', es: 'Polvo de demonio', note: '180 s, a todo el grupo', attack: 10 },
+  { key: 'mightPill', es: 'Píldora de poder', note: '20 s', attack: 25 },
+]
+export const DEFENSE_DRUGS: ItemOption[] = [
+  { key: 'none', es: 'Ninguna' },
+  { key: 'armorskin', es: 'Piel de armadura', defense: 15 },
+  { key: 'mega', es: 'Piel de armadura+', defense: 25 },
+]
+export const DEFENSE_SEEDS: ItemOption[] = [
+  { key: 'none', es: 'Ninguna' },
+  { key: 'adamantSeed', es: 'Semilla armadura', note: '180 s', defense: 20 },
+  { key: 'hardshell', es: 'Polvo de cáscara', note: '180 s, a todo el grupo', defense: 20 },
+  { key: 'adamantPill', es: 'Píldora armadura', note: '20 s', defensePct: 30 },
+]
+/** Amuletos y garras: basta con llevarlos en la bolsa y se acumulan entre sí */
+export const CHARM_ITEMS = {
+  powercharm: { es: 'Amuleto de poder', attack: 6 },
+  powertalon: { es: 'Garra de poder', attack: 9 },
+  armorcharm: { es: 'Amuleto armadura', defense: 12 },
+  armortalon: { es: 'Garra armadura', defense: 18 },
+} as const
+export type CharmItemKey = keyof typeof CHARM_ITEMS
+
+/** Habilidades felyne de la cantina que cambian el daño o la defensa (máximo 3 activas) */
+export const FOOD_SKILLS = [
+  { key: 'booster', es: 'Felyne potenciador', desc: '+9 ataque y +15 defensa los 10 primeros minutos', attack: 9, defense: 15 },
+  { key: 'coolCat', es: 'Felyne relajado', desc: '+9 ataque 30 s tras sentarte 5 s', attack: 9 },
+  { key: 'heroics', es: 'Felyne heroico', desc: '+35% ataque y +50% defensa con la salud muy baja', attackPct: 35, defensePct: 50 },
+  { key: 'specialist', es: 'Felyne especialista', desc: '+30 al estado anormal del arma', status: 30 },
+] as const
+export type FoodSkillKey = (typeof FOOD_SKILLS)[number]['key']
+export const MAX_FOOD_SKILLS = 3

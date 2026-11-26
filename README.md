@@ -8,6 +8,7 @@ App web (Vite + React + TypeScript, 100 % estática) para montar builds de **Mon
 - **Joyas**: cada ranura acepta solo las joyas que caben (incluye joyas de nivel 4, combinadas y "+"/"duras").
 - **Aumentos** de arma (RM rareza 10-12): ataque, afinidad, defensa, mejora de ranura, regeneración de vida y elemento, con costes y niveles máximos por rareza y el nivel de aumento (huecos extra).
 - **Mejoras personalizadas** de las Tierras Guía (7 niveles).
+- **Cantina y objetos**: comida (carne → ataque, pescado → defensa, S/M/L según ingredientes), habilidades felyne que afectan al daño o la defensa (máx. 3), drogas, semillas, polvos, píldoras y amuletos/garras de ataque y defensa, con sus reglas de acumulación.
 - **Ajustes manuales**: ataque, afinidad, elemento y defensa extra (despertares de Safi'jiiva…).
 - **Resumen**: habilidades con nivel/máximo (y los Secretos que desbloquean niveles), bonus de set, defensa (base / mejorada / con aumentos), resistencias, filo según Artesanía, ataque mostrado, raw real, afinidad y **raw efectivo (EFR)** con condiciones activables (punto débil, instigador, salud completa…).
 - **Optimizador**: eliges habilidades y niveles objetivo y busca armaduras + amuleto + joyas que las cumplan con las ranuras de tu arma. Corre en un Web Worker y prioriza más ranuras libres y más defensa. Puedes fijar piezas y aplicar un resultado con un clic.
@@ -30,6 +31,7 @@ App web (Vite + React + TypeScript, 100 % estática) para montar builds de **Mon
 - Parte del contenido de las últimas actualizaciones (p. ej. Fatalis) no tiene nombre en español en MHWorldData; en ese caso se muestra en inglés.
 - Las reglas de **aumentos**, **mejoras personalizadas** y los efectos numéricos de habilidades (Conversión elemental de Alatreon, Desvelar dracovena de Safi'jiiva, Aceleración de elemento, Destreza helada, Elemento/Estado crítico, Impacto mejorado, Bonus de desmayo…) no vienen en la base de datos. Están en `src/logic/rules.ts`, tomados de Kiranico y de las wikis de Fandom y Fextralife, y `scripts/verify-skills.ts` comprueba casos concretos.
 - No se aplica el límite máximo de elemento de Iceborne.
+- La resistencia elemental de las verduras de la cantina y las melodías de Cornamusa no se simulan (no se encontraron sus valores en las fuentes).
 - El EFR es una estimación (no aplica valores de movimiento ni zonas débiles).
 
 ## Desarrollo
