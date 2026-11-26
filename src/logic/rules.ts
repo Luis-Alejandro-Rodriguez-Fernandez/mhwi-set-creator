@@ -227,3 +227,30 @@ export const FOOD_SKILLS = [
 ] as const
 export type FoodSkillKey = (typeof FOOD_SKILLS)[number]['key']
 export const MAX_FOOD_SKILLS = 3
+
+// ---------------- Herramientas especializadas ----------------
+// Se pueden llevar 2. En Iceborne los mantos "+" tienen ranuras de joya: sus joyas
+// solo cuentan mientras el manto está activo. Fuente: wikis de Fextralife y Fandom.
+export const TOOL_EFFECTS: Record<string, { es: string; dragonMult?: number; dodgeAttackPct?: number }> = {
+  'Ghillie Mantle+': { es: 'Te oculta de los monstruos hasta que atacas o te golpean.' },
+  'Temporal Mantle+': { es: 'Esquiva automáticamente ataques fuertes (cada esquiva resta 20 s).' },
+  'Rocksteady Mantle+': { es: 'Sin retrocesos, viento, rugidos ni temblores; -30% de daño recibido.' },
+  'Challenger Mantle+': { es: 'Los monstruos te atacan más a menudo.' },
+  'Vitality Mantle+': { es: 'Absorbe una cantidad fija de daño.' },
+  'Fireproof Mantle+': { es: '-70% de daño de fuego; anula fuego y nitro.' },
+  'Waterproof Mantle+': { es: '-70% de daño de agua; anula agua y barro.' },
+  'Iceproof Mantle+': { es: '-70% de daño de hielo; anula hielo y frío.' },
+  'Thunderproof Mantle+': { es: '-70% de daño de trueno; anula trueno y parálisis.' },
+  'Dragonproof Mantle+': { es: '-70% de daño de dragón; ×1,2 al daño de dragón del arma y sello de dragón alto.', dragonMult: 1.2 },
+  'Glider Mantle+': { es: 'Más tiempo en el aire; +20% a la acumulación de montura.' },
+  'Evasion Mantle+': { es: 'Más invulnerabilidad al esquivar; +30% de ataque 20 s tras una esquiva perfecta.', dodgeAttackPct: 30 },
+  'Impact Mantle+': { es: 'Añade aturdimiento a casi todos los ataques (×1,3 al que ya tengan).' },
+  'Apothecary Mantle+': { es: 'El estado se aplica en todos los golpes (con menos acumulación por golpe).' },
+  'Immunity Mantle+': { es: 'Anula los estados anormales mientras dura.' },
+  'Bandit Mantle+': { es: 'Los monstruos sueltan objetos de intercambio al golpearlos.' },
+  "Assassin's Hood+": { es: 'Más velocidad y sigilo; gran daño a un monstruo desprevenido.' },
+  'Health Booster+': { es: 'Coloca un humo que regenera vida.' },
+  'Cleanser Booster+': { es: 'Coloca un humo que elimina estados y plagas.' },
+  'Affinity Booster+': { es: 'Coloca un humo que sube la afinidad (valor no simulado).' },
+}
+export const MAX_TOOLS = 2

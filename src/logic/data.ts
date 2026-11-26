@@ -1,4 +1,4 @@
-import type { Armor, Charm, Decoration, Lang, Named, RawData, SetBonus, Skill, Weapon } from '../types'
+import type { Armor, Charm, Decoration, Lang, Named, RawData, SetBonus, Skill, Tool, Weapon } from '../types'
 
 export interface GameData extends RawData {
   skillById: Map<number, Skill>
@@ -7,6 +7,7 @@ export interface GameData extends RawData {
   decoById: Map<number, Decoration>
   charmById: Map<number, Charm>
   weaponById: Map<number, Weapon>
+  toolById: Map<number, Tool>
   /** habilidad -> bonus de set que la otorga (y cuántas piezas) */
   bonusSkill: Map<number, { bonus: number; pieces: number }>
 }
@@ -30,6 +31,7 @@ export function indexData(raw: RawData): GameData {
     decoById: by(raw.decorations),
     charmById: by(raw.charms),
     weaponById: by(raw.weapons),
+    toolById: by(raw.tools ?? []),
     bonusSkill,
   }
 }

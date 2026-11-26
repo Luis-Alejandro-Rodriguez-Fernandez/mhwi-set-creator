@@ -9,7 +9,7 @@ import {
   TRUE_ELEMENT_ACCELERATION, WEAKNESS_EXPLOIT, at, augmentCost, critElementMult, critStatusMult, customBonus,
   sharpnessAt, upgradeSlots, type AugmentKey, type ConditionKey, type CustomKey,
   ATTACK_DRUGS, ATTACK_SEEDS, CHARM_ITEMS, DEFENSE_DRUGS, DEFENSE_SEEDS, FOOD_SKILLS, MEAL_BONUS,
-  type CharmItemKey, type FoodSkillKey,
+  type CharmItemKey, type FoodSkillKey, TOOL_EFFECTS,
 } from './rules'
 
 export interface PieceState {
@@ -40,7 +40,16 @@ export interface Build {
   conditions: Partial<Record<ConditionKey, boolean | number>>
   /** Comida de la cantina y objetos consumibles */
   support: Support
+  /** Herramientas especializadas (2 huecos): manto/potenciador, joyas del manto y si está activo */
+  tools: ToolState[]
 }
+
+export interface ToolState extends PieceState {
+  active: boolean
+  /** Manto de evasión: bonus tras esquiva perfecta */
+  dodge: boolean
+}
+export const emptyTool = (): ToolState => ({ id: null, decos: [], active: true, dodge: false })
 
 export interface Support {
   /** tamaño del bonus de la comida: 0 = nada, 1-3 = S/M/L */
@@ -89,6 +98,7 @@ export function emptyBuild(name = 'Nueva build'): Build {
     defenseMode: 'augmented',
     conditions: { weakspot: true, agitator: true, peak: true, elementConversion: true, dragonvein: true, elemAccel: true, frostcraft: 3 },
     support: emptySupport(),
+    tools: [emptyTool(), emptyTool()],
   }
 }
 
@@ -118,6 +128,7 @@ export function normalizeBuild(b: Partial<Build> & { weapon?: Partial<Build['wea
       charms: { ...base.support.charms, ...b.support?.charms },
       foodSkills: [...(b.support?.foodSkills ?? [])],
     },
+    tools: [0, 1].map((i) => ({ ...emptyTool(), ...b.tools?.[i] })),
   } as Build
 }
 
@@ -237,6 +248,10 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
     if (p.bonus != null) bonusCount.set(p.bonus, (bonusCount.get(p.bonus) ?? 0) + 1)
   }
   if (charm) for (const [s, l] of charm.skills) add(s, l, n(charm))
+  const activeTools = b.tools
+    .map((t) => ({ state: t, tool: t.id != null ? data.toolById.get(t.id) : undefined }))
+    .filter((x): x is { state: ToolState; tool: NonNullable<typeof x.tool> } => !!x.tool && x.state.active)
+  for (const { state, tool } of activeTools) addDecos(state.decos, tool.slots)
 
   const bonuses = [...bonusCount.entries()].map(([id, count]) => {
     const bonus = data.bonusById.get(id)!
@@ -385,6 +400,12 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
       pct += supportAttackPct
       applied.push({ label: 'Felyne heroico', detail: `+${supportAttackPct}% ataque` })
     }
+    const evasion = activeTools.find((x) => x.state.dodge && TOOL_EFFECTS[x.tool.en]?.dodgeAttackPct)
+    if (evasion) {
+      const v = TOOL_EFFECTS[evasion.tool.en].dodgeAttackPct!
+      pct += v
+      applied.push({ label: n(evasion.tool), detail: `+${v}% ataque tras esquiva perfecta` })
+    }
     let mult = 1 + pct / 100
     if (has('Non-elemental Boost') && !hasElement) {
       mult *= NON_ELEMENTAL_BOOST
@@ -444,6 +465,9 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
     if (critEl > 1 && weapon.elements.some((e) => !STATUS.includes(e.type))) applied.push({ label: has('True Critical Element') ? 'Elemento crítico real' : 'Elemento crítico', detail: `crítico elemental ×${critEl}` })
     if (critSt > 1 && weapon.elements.some((e) => STATUS.includes(e.type))) applied.push({ label: has('True Critical Status') ? 'Estado crítico real' : 'Estado crítico', detail: `crítico de estado ×${critSt}` })
 
+    const dragonMantleTool = activeTools.find((x) => TOOL_EFFECTS[x.tool.en]?.dragonMult)
+    const dragonMantle = dragonMantleTool ? TOOL_EFFECTS[dragonMantleTool.tool.en].dragonMult! : 0
+    if (dragonMantleTool && weapon.elements.some((e) => e.type === 'Dragon')) applied.push({ label: n(dragonMantleTool.tool), detail: `×${dragonMantle} daño de dragón` })
     const elements = weapon.elements.map((e) => {
       const isStatus = STATUS.includes(e.type)
       const skillName = e.type === 'Paralysis' ? 'Paralysis Attack' : `${e.type} Attack`
@@ -460,6 +484,7 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
         if (accel && !isStatus) disp += accel.element
         if (ecTrue && !isStatus) disp += ecTrue * 10
         disp *= 1 + frostPct / 100
+        if (e.type === 'Dragon' && dragonMantle) disp *= dragonMantle
       }
       const m = isStatus ? critSt : critEl
       return { type: e.type, display: Math.round(disp), hidden: weapon.elementHidden, isStatus, effective: Math.round((disp / 10) * (isStatus ? 1 : sEl) * (m > 1 ? critFactor(m) : 1)) }

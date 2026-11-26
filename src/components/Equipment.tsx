@@ -7,11 +7,12 @@ import { useApp } from '../logic/context'
 import { Picker } from './Picker'
 import { Rarity, SkillList, SlotIcon, Slots } from './bits'
 import { SupportCard } from './Support'
+import { ToolsCard } from './Tools'
 
 type Update = (fn: (b: Build) => void) => void
 type RankFilter = 'MR' | 'HR' | 'ALL'
 
-function DecoSlots({ slots, decos, onChange }: { slots: number[]; decos: (number | null)[]; onChange: (i: number, d: number | null) => void }) {
+export function DecoSlots({ slots, decos, onChange }: { slots: number[]; decos: (number | null)[]; onChange: (i: number, d: number | null) => void }) {
   const { data, lang } = useApp()
   const [open, setOpen] = useState<number | null>(null)
   const size = open != null ? slots[open] : 0
@@ -367,6 +368,7 @@ export function EquipmentList({ build, update, computed, rank, setRank }: { buil
         <ArmorCard key={t} type={t} build={build} update={update} piece={computed.pieces[t]} rank={rank} setRank={setRank} />
       ))}
       <CharmCard build={build} update={update} />
+      <ToolsCard build={build} update={update} />
       <SupportCard build={build} update={update} />
     </div>
   )

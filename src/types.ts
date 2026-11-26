@@ -75,6 +75,14 @@ export interface Weapon extends Named {
   category: string | null
 }
 
+export interface Tool extends Named {
+  /** 'mantle' (manto) o 'booster' (potenciador) */
+  type: string
+  slots: number[]
+  duration: number
+  recharge: number
+}
+
 export interface RawData {
   source: { repo: string; commit: string; license: string }
   generatedAt: string
@@ -84,4 +92,5 @@ export interface RawData {
   decorations: Decoration[]
   charms: Charm[]
   weapons: Weapon[]
+  tools: Tool[]
 }

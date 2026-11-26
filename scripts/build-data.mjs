@@ -39,6 +39,7 @@ const [
   armorBase, armorTr, armorSkills, setBase, setTr, bonusBase, bonusTr,
   decoBase, decoTr, charmBase, charmTr,
   weaponBase, weaponTr, sharpness,
+  toolBase, toolTr,
 ] = await Promise.all([
   'skills/skill_base.csv', 'skills/skill_base_translations.csv', 'skills/skill_levels.csv',
   'armors/armor_base.csv', 'armors/armor_base_translations.csv', 'armors/armor_skills_ext.csv',
@@ -47,6 +48,7 @@ const [
   'decorations/decoration_base.csv', 'decorations/decoration_base_translations.csv',
   'charms/charm_base.csv', 'charms/charm_base_translations.csv',
   'weapons/weapon_base.csv', 'weapons/weapon_base_translations.csv', 'weapons/weapon_sharpness.csv',
+  'tools/tool_base.csv', 'tools/tool_base_translations.csv',
 ].map(readCsv))
 
 // ---------- Habilidades ----------
@@ -208,13 +210,28 @@ const weapons = weaponBase.map((w) => {
   }
 })
 
+// ---------- Herramientas especializadas (mantos y potenciadores mejorados de Iceborne) ----------
+const toolTrM = translations(toolTr)
+const tools = toolBase.map((t) => {
+  const name = norm(t.name_en)
+  return {
+    id: num(t.id),
+    en: name,
+    es: norm(toolTrM.get(name)?.name_es) || name,
+    type: t.tool_type,
+    slots: [t.slot_1, t.slot_2, t.slot_3].map(num).filter((x) => x > 0),
+    duration: num(t.duration_upgraded) || num(t.duration),
+    recharge: num(t.recharge),
+  }
+})
+
 const out = {
   source: { repo: 'gatheringhallstudios/MHWorldData', commit: COMMIT, license: 'MIT' },
   generatedAt: new Date().toISOString(),
-  skills, setBonuses, armor, decorations, charms, weapons,
+  skills, setBonuses, armor, decorations, charms, weapons, tools,
 }
 await fs.mkdir(path.dirname(OUT), { recursive: true })
 await fs.writeFile(OUT, JSON.stringify(out))
 const kb = (await fs.stat(OUT)).size / 1024
 console.log(`OK -> ${OUT} (${kb.toFixed(0)} KB)`)
-console.log(Object.fromEntries(['skills', 'setBonuses', 'armor', 'decorations', 'charms', 'weapons'].map((k) => [k, out[k].length])))
+console.log(Object.fromEntries(['skills', 'setBonuses', 'armor', 'decorations', 'charms', 'weapons', 'tools'].map((k) => [k, out[k].length])))

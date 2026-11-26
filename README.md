@@ -9,6 +9,7 @@ App web (Vite + React + TypeScript, 100 % estática) para montar builds de **Mon
 - **Aumentos** de arma (RM rareza 10-12): ataque, afinidad, defensa, mejora de ranura, regeneración de vida y elemento, con costes y niveles máximos por rareza y el nivel de aumento (huecos extra).
 - **Mejoras personalizadas** de las Tierras Guía (7 niveles).
 - **Cantina y objetos**: comida (carne → ataque, pescado → defensa, S/M/L según ingredientes), habilidades felyne que afectan al daño o la defensa (máx. 3), drogas, semillas, polvos, píldoras y amuletos/garras de ataque y defensa, con sus reglas de acumulación.
+- **Mantos**: dos huecos de herramienta especializada (mantos y potenciadores mejorados de Iceborne) con las ranuras de joya de cada manto; sus joyas y efectos (antidraco ×1,2 al dragón, evasión +30% tras esquiva perfecta) solo cuentan si el manto está activo.
 - **Ajustes manuales**: ataque, afinidad, elemento y defensa extra (despertares de Safi'jiiva…).
 - **Resumen**: habilidades con nivel/máximo (y los Secretos que desbloquean niveles), bonus de set, defensa (base / mejorada / con aumentos), resistencias, filo según Artesanía, ataque mostrado, raw real, afinidad y **raw efectivo (EFR)** con condiciones activables (punto débil, instigador, salud completa…).
 - **Optimizador**: eliges habilidades y niveles objetivo y busca armaduras + amuleto + joyas que las cumplan con las ranuras de tu arma. Corre en un Web Worker y prioriza más ranuras libres y más defensa. Puedes fijar piezas y aplicar un resultado con un clic.

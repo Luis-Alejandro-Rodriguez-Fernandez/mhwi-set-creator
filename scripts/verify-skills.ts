@@ -155,5 +155,28 @@ const check = (name: string, got: number, want: number) => {
   check('Joyas de resistencia: elemento por Conversión (+16)', after.stats!.elements[0].display, before.stats!.elements[0].display + 16)
 }
 
+// --- Mantos: joyas en ranuras del manto (solo si está activo), antidraco ×1,2 y evasión +30%
+{
+  const w = weaponBy((x) => x.en === 'Black Fatalis Blade')
+  const tool = (en: string) => raw.tools.find((t) => t.en === en)!
+  const b = emptyBuild()
+  b.weapon.id = w.id
+  b.conditions = {}
+  const base = computeBuild(b, data)
+  const atk4 = raw.decorations.find((d) => d.en === 'Attack Jewel+ 4')! // Bonus ataque 2
+  b.tools[0] = { id: tool('Glider Mantle+').id, decos: [atk4.id, atk4.id], active: true, dodge: false }
+  let c = computeBuild(b, data)
+  check('Manto planeador+ con 2 joyas de ataque+: Bonus ataque 4', c.skillLevel('Attack Boost'), 4)
+  b.tools[0].active = false
+  c = computeBuild(b, data)
+  check('Manto inactivo: sus joyas no cuentan', c.skillLevel('Attack Boost'), 0)
+  b.tools[0] = { id: tool('Dragonproof Mantle+').id, decos: [], active: true, dodge: false }
+  c = computeBuild(b, data)
+  check('Manto antidraco+: dragón ×1,2', c.stats!.elements[0].display, Math.round(base.stats!.elements[0].display * 1.2))
+  b.tools[1] = { id: tool('Evasion Mantle+').id, decos: [], active: true, dodge: true }
+  c = computeBuild(b, data)
+  check('Manto de evasión+ tras esquiva perfecta: +30% ataque', c.stats!.trueRaw, Math.round((base.stats!.trueRaw - 15) * 1.3 * 10 + 150) / 10)
+}
+
 console.log(fails ? `\n${fails} fallo(s)` : '\nTodo correcto')
 if (fails) process.exit(1)
