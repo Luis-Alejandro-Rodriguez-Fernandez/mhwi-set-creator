@@ -32,8 +32,9 @@ export const saveDraft = (b: Build) => write(KEY_DRAFT, b)
 export interface Prefs {
   lang: 'es' | 'en'
   rankFilter: 'MR' | 'HR' | 'ALL'
+  theme: 'auto' | 'light' | 'dark'
 }
-export const loadPrefs = (): Prefs => ({ lang: 'es', rankFilter: 'MR', ...read<Partial<Prefs>>(KEY_PREFS, {}) })
+export const loadPrefs = (): Prefs => ({ lang: 'es', rankFilter: 'MR', theme: 'auto', ...read<Partial<Prefs>>(KEY_PREFS, {}) })
 export const savePrefs = (p: Prefs) => write(KEY_PREFS, p)
 
 // ---------- Exportar / importar ----------

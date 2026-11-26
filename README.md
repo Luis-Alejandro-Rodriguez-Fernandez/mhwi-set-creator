@@ -6,8 +6,9 @@ App web (Vite + React + TypeScript, 100 % estática) para montar builds de **Mon
 
 - **Constructor**: arma, 5 piezas de armadura y amuleto, con buscador (español/inglés, por nombre o por habilidad) y filtro por rango (RM / RA+RM / todo).
 - **Joyas**: cada ranura acepta solo las joyas que caben (incluye joyas de nivel 4, combinadas y "+"/"duras").
-- **Aumentos** de arma (RM rareza 10-12): ataque, afinidad, defensa, mejora de ranura, regeneración de vida y elemento, con contador de capacidad y la ranura de aumento extra.
-- **Personalización / ajustes manuales**: ataque, afinidad, elemento y defensa extra (mejoras personalizadas de las Tierras Guía, despertares de Safi'jiiva…).
+- **Aumentos** de arma (RM rareza 10-12): ataque, afinidad, defensa, mejora de ranura, regeneración de vida y elemento, con costes y niveles máximos por rareza y el nivel de aumento (huecos extra).
+- **Mejoras personalizadas** de las Tierras Guía (7 niveles).
+- **Ajustes manuales**: ataque, afinidad, elemento y defensa extra (despertares de Safi'jiiva…).
 - **Resumen**: habilidades con nivel/máximo (y los Secretos que desbloquean niveles), bonus de set, defensa (base / mejorada / con aumentos), resistencias, filo según Artesanía, ataque mostrado, raw real, afinidad y **raw efectivo (EFR)** con condiciones activables (punto débil, instigador, salud completa…).
 - **Optimizador**: eliges habilidades y niveles objetivo y busca armaduras + amuleto + joyas que las cumplan con las ranuras de tu arma. Corre en un Web Worker y prioriza más ranuras libres y más defensa. Puedes fijar piezas y aplicar un resultado con un clic.
 - **Guardado local**: lista de builds, duplicar, borrar, exportar/importar JSON y **compartir por enlace** (la build va codificada en la URL). El borrador actual se guarda solo.
@@ -27,7 +28,8 @@ App web (Vite + React + TypeScript, 100 % estática) para montar builds de **Mon
 ### Limitaciones conocidas
 
 - Parte del contenido de las últimas actualizaciones (p. ej. Fatalis) no tiene nombre en español en MHWorldData; en ese caso se muestra en inglés.
-- Las reglas de **aumentos** (costes, capacidad por rareza, bonus) y algunos valores de habilidades de Iceborne no vienen en la base de datos: están en `src/logic/rules.ts` y conviene revisarlas contra el juego.
+- Las reglas de **aumentos**, **mejoras personalizadas** y los efectos numéricos de habilidades (Conversión elemental de Alatreon, Desvelar dracovena de Safi'jiiva, Aceleración de elemento, Destreza helada, Elemento/Estado crítico, Impacto mejorado, Bonus de desmayo…) no vienen en la base de datos. Están en `src/logic/rules.ts`, tomados de Kiranico y de las wikis de Fandom y Fextralife, y `scripts/verify-skills.ts` comprueba casos concretos.
+- No se aplica el límite máximo de elemento de Iceborne.
 - El EFR es una estimación (no aplica valores de movimiento ni zonas débiles).
 
 ## Desarrollo

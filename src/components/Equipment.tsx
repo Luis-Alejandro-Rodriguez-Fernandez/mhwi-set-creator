@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import { ARMOR_TYPES, type Armor, type ArmorType, type Charm, type Decoration, type Weapon } from '../types'
 import { ARMOR_TYPE_NAMES, ELEMENT_NAMES, WEAPON_TYPES, nameOf, weaponTypeInfo } from '../logic/data'
-import { fitDecos, weaponSlots, type Build, type Computed } from '../logic/build'
-import { AUGMENTS, AUGMENT_CAPACITY, augmentCost, type AugmentKey } from '../logic/rules'
+import { augmentMaxLevel, clampAugments, fitDecos, weaponSlots, type Build, type Computed } from '../logic/build'
+import { AUGMENT_CAPACITY, AUGMENT_EFFECT, AUGMENT_NAMES, AUGMENT_ORDER, CUSTOM_NAMES, augmentCost, customBonus, type AugmentKey, type CustomKey } from '../logic/rules'
 import { useApp } from '../logic/context'
 import { Picker } from './Picker'
 import { Rarity, SkillList, SlotIcon, Slots } from './bits'
@@ -87,7 +87,6 @@ export function WeaponCard({ build, update, computed, rank, setRank }: { build: 
   )
   const search = useCallback((x: Weapon) => `${x.es} ${x.en} ${x.elements.map((e) => `${e.type} ${ELEMENT_NAMES[e.type]}`).join(' ')}`, [])
   const isMr = (w?.rarity ?? 0) >= 10
-  const cap = w ? AUGMENT_CAPACITY[w.rarity] : undefined
 
   const setAug = (key: AugmentKey, lv: number) =>
     update((b) => {
@@ -132,48 +131,82 @@ export function WeaponCard({ build, update, computed, rank, setRank }: { build: 
           </div>
           <DecoSlots slots={computed.weaponSlots} decos={build.weapon.decos} onChange={(i, d) => update((b) => { b.weapon.decos[i] = d })} />
 
-          <details className="sub" open={isMr && Object.values(build.weapon.augments).some((v) => v > 0)}>
-            <summary>
-              Aumentos {isMr ? '' : <span className="muted small">(solo armas RM rareza 10-12)</span>}
-              {isMr && cap && (
-                <span className={`badge${computed.augment.over ? ' bad' : ''}`}>{computed.augment.used}/{computed.augment.capacity}</span>
-              )}
-            </summary>
-            {isMr ? (
+          {isMr ? (
+            <details className="sub" open={Object.values(build.weapon.augments).some((v) => v > 0)}>
+              <summary>
+                Aumentos
+                <span className={`badge${computed.augment.over ? ' bad' : ''}`} title="Huecos de aumento usados / disponibles">{computed.augment.used}/{computed.augment.capacity}</span>
+              </summary>
               <div className="augments">
-                {AUGMENTS.map((a) => {
-                  const lv = build.weapon.augments[a.key]
+                <div className="aug-row">
+                  <span className="aug-name">Nivel de aumento</span>
+                  <div className="stepper">
+                    {(AUGMENT_CAPACITY[w.rarity] ?? []).map((capN, i) => (
+                      <button key={i} className={`step${build.weapon.augmentLevel === i + 1 ? ' on' : ''}`} title={`${capN} huecos`} onClick={() => update((b) => { b.weapon.augmentLevel = i + 1 })}>
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="muted small">{computed.augment.capacity} huecos (sube con "Huecos extra")</span>
+                </div>
+                {AUGMENT_ORDER.map((k) => {
+                  const lv = build.weapon.augments[k]
+                  const max = augmentMaxLevel(k, w.rarity)
                   return (
-                    <div key={a.key} className="aug-row">
-                      <span className="aug-name">{a.es}</span>
+                    <div key={k} className="aug-row">
+                      <span className="aug-name">{AUGMENT_NAMES[k]}</span>
                       <div className="stepper">
-                        {Array.from({ length: a.cost.length + 1 }, (_, i) => (
-                          <button key={i} className={`step${lv === i ? ' on' : ''}`} onClick={() => setAug(a.key, i)} title={i ? `${a.effect[i - 1]} · coste ${augmentCost(a.key, i)}` : 'Sin aumento'}>
+                        {Array.from({ length: max + 1 }, (_, i) => (
+                          <button key={i} className={`step${lv === i ? ' on' : ''}`} onClick={() => setAug(k, i)} title={i ? `${AUGMENT_EFFECT[k](i)} · ${augmentCost(k, i, w.rarity)} huecos` : 'Sin aumento'}>
                             {i === 0 ? '–' : ['I', 'II', 'III', 'IV'][i - 1]}
                           </button>
                         ))}
                       </div>
-                      <span className="muted small">{lv ? a.effect[lv - 1] : ''}</span>
+                      <span className="muted small">{lv ? `${AUGMENT_EFFECT[k](lv)} · ${augmentCost(k, lv, w.rarity)} huecos` : ''}</span>
                     </div>
                   )
                 })}
-                <label className="check small">
-                  <input type="checkbox" checked={build.weapon.extraAugment} onChange={(e) => update((b) => { b.weapon.extraAugment = e.target.checked })} />
-                  Ranura de aumento extra desbloqueada
-                </label>
-                {computed.augment.over && <p className="warn small">Superas la capacidad de aumentos de esta rareza.</p>}
+                {computed.augment.over && <p className="warn small">Superas los huecos de aumento: sube el nivel de aumento o quita alguno.</p>}
               </div>
-            ) : null}
-          </details>
+            </details>
+          ) : (
+            <p className="muted small">Los aumentos y las mejoras personalizadas solo existen en armas de Rango Maestro (rareza 10-12).</p>
+          )}
+
+          {isMr && (
+            <details className="sub" open={build.weapon.customUpgrades.some((k) => k != null)}>
+              <summary>
+                Mejoras personalizadas
+                <span className="badge">{build.weapon.customUpgrades.filter((k) => k != null).length}/7</span>
+              </summary>
+              <p className="muted small">Una mejora por nivel. Ataque +1 (nv7: +3), afinidad +1% (nv7: +3%), elemento +10, defensa +10.</p>
+              <div className="augments">
+                {build.weapon.customUpgrades.map((cur, i) => (
+                  <div key={i} className="aug-row">
+                    <span className="aug-name">Nivel {i + 1}</span>
+                    <div className="stepper">
+                      <button className={`step${cur == null ? ' on' : ''}`} onClick={() => update((b) => { b.weapon.customUpgrades[i] = null })}>–</button>
+                      {(Object.keys(CUSTOM_NAMES) as CustomKey[]).map((k) => (
+                        <button key={k} className={`step${cur === k ? ' on' : ''}`} onClick={() => update((b) => { b.weapon.customUpgrades[i] = k })}>
+                          {CUSTOM_NAMES[k]}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="muted small">{cur ? `+${customBonus(cur, i + 1)}${cur === 'affinity' ? '%' : ''}` : ''}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
 
           <details className="sub" open={Object.values(build.weapon.custom).some((v) => v !== 0)}>
-            <summary>Personalización / ajustes manuales</summary>
-            <p className="muted small">Para mejoras personalizadas (Tierras Guía), despertares de Safi'jiiva o cualquier bonus que la base de datos no recoja. Valores tal como los muestra el juego.</p>
+            <summary>Ajustes manuales</summary>
+            <p className="muted small">Para despertares de Safi'jiiva o cualquier bonus que no esté en la base de datos. Valores tal como los muestra el juego.</p>
             <div className="custom-grid">
               {(['attack', 'affinity', 'element', 'defense'] as const).map((k) => (
                 <label key={k}>
                   <span className="small">{{ attack: 'Ataque', affinity: 'Afinidad %', element: 'Elemento', defense: 'Defensa' }[k]}</span>
-                  <input type="number" value={build.weapon.custom[k]} onChange={(e) => update((b) => { b.weapon.custom[k] = Number(e.target.value) || 0 })} />
+                  <input id={`manual-${k}`} type="number" value={build.weapon.custom[k]} onChange={(e) => update((b) => { b.weapon.custom[k] = Number(e.target.value) || 0 })} />
                 </label>
               ))}
             </div>
@@ -201,7 +234,7 @@ export function WeaponCard({ build, update, computed, rank, setRank }: { build: 
           onPick={(x) =>
             (setOpen(false), update((b) => {
               b.weapon.id = x?.id ?? null
-              if (x && x.rarity < 10) b.weapon.augments = { attack: 0, affinity: 0, defense: 0, slot: 0, health: 0, element: 0 }
+              clampAugments(b, x ?? undefined)
               b.weapon.decos = x ? fitDecos(b.weapon.decos, weaponSlots(x, b), data) : []
             }))
           }

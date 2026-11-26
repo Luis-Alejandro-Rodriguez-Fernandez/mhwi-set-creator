@@ -9,7 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "data": "node scripts/build-data.mjs",
-    "test": "tsx scripts/verify-optimizer.ts"
+    "test": "tsx scripts/verify-optimizer.ts && tsx scripts/verify-skills.ts"
   },
   "dependencies": {
     "react": "^19.3.1",

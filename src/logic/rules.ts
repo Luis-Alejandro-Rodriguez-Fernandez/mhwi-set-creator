@@ -3,42 +3,58 @@
 
 export type AugmentKey = 'attack' | 'affinity' | 'defense' | 'slot' | 'health' | 'element'
 
-export interface AugmentRule {
-  key: AugmentKey
-  es: string
-  /** coste en "huecos de aumento" de cada nivel (incremental) */
-  cost: number[]
-  /** descripción del efecto por nivel (acumulado) */
-  effect: string[]
+// Aumentos de arma de Rango Maestro (rareza 10-12).
+// Fuente: wiki de Fandom "MHWI: Augments" (costes acumulados en huecos por nivel).
+export const AUGMENT_NAMES: Record<AugmentKey, string> = {
+  attack: 'Aumento de ataque',
+  affinity: 'Aumento de afinidad',
+  defense: 'Aumento de defensa',
+  slot: 'Mejora de ranura',
+  health: 'Regeneración de vida',
+  element: 'Aumento de elemento/estado',
+}
+export const AUGMENT_ORDER: AugmentKey[] = ['attack', 'affinity', 'defense', 'slot', 'health', 'element']
+
+/** Huecos usados (acumulados) por nivel de cada aumento, según rareza */
+export const AUGMENT_COSTS: Record<number, Record<AugmentKey, number[]>> = {
+  10: { attack: [3, 5, 7, 9], affinity: [2, 4, 6, 8], defense: [1, 2, 3, 5], slot: [3, 6, 7, 8], health: [3, 5, 7, 9], element: [1, 3, 5, 7] },
+  11: { attack: [3, 5, 7], affinity: [2, 4, 6, 8], defense: [1, 2, 3, 5], slot: [3, 6, 7, 8], health: [3, 5, 7], element: [1, 3, 5, 7] },
+  12: { attack: [3, 6], affinity: [2, 4, 6], defense: [1, 2, 3, 5], slot: [3, 5], health: [3, 5], element: [1, 3, 5] },
+}
+/** Huecos de aumento según rareza y nivel de aumento (1-4, se sube con "Huecos extra") */
+export const AUGMENT_CAPACITY: Record<number, number[]> = {
+  10: [5, 7, 9, 10],
+  11: [4, 5, 6, 8],
+  12: [3, 4, 5, 6],
 }
 
-// Aumentos de arma de Iceborne (Rango Maestro, rareza 10-12).
-// ⚠️ Valores tomados de la wiki comunitaria de memoria; verifícalos en el juego.
-export const AUGMENTS: AugmentRule[] = [
-  { key: 'attack', es: 'Aumento de ataque', cost: [3, 2, 2, 2], effect: ['+5 ataque', '+10 ataque', '+15 ataque', '+20 ataque'] },
-  { key: 'affinity', es: 'Aumento de afinidad', cost: [2, 2, 2, 2], effect: ['+10% afinidad', '+15% afinidad', '+20% afinidad', '+25% afinidad'] },
-  { key: 'defense', es: 'Aumento de defensa', cost: [1, 1, 1, 2], effect: ['+10 defensa', '+20 defensa', '+30 defensa', '+50 defensa'] },
-  { key: 'slot', es: 'Mejora de ranura', cost: [3, 3, 1], effect: ['Ranura +1', 'Ranura +2', 'Ranura +3'] },
-  { key: 'health', es: 'Regeneración de vida', cost: [3, 2, 2], effect: ['Recupera vida al golpear (I)', 'Recupera vida al golpear (II)', 'Recupera vida al golpear (III)'] },
-  { key: 'element', es: 'Aumento de elemento/estado', cost: [1, 2, 2], effect: ['Elemento/estado +', 'Elemento/estado ++', 'Elemento/estado +++'] },
-]
+export const augmentCost = (key: AugmentKey, level: number, rarity: number) =>
+  level <= 0 ? 0 : AUGMENT_COSTS[rarity]?.[key]?.[level - 1] ?? 0
 
-/** Capacidad de aumentos según rareza (sin / con la ranura extra desbloqueada) */
-export const AUGMENT_CAPACITY: Record<number, [number, number]> = {
-  10: [5, 6],
-  11: [4, 5],
-  12: [3, 4],
-}
-
-export const augmentCost = (key: AugmentKey, level: number) =>
-  AUGMENTS.find((a) => a.key === key)!.cost.slice(0, level).reduce((s, c) => s + c, 0)
-
-/** Bonus numéricos que aplican los aumentos */
+/** Bonus por nivel de aumento (índice = nivel) */
 export const AUGMENT_BONUS = {
-  attackTrue: 5, // ataque real por nivel
+  attackTrue: [0, 5, 10, 15, 25],
   affinity: [0, 10, 15, 20, 25],
-  defense: [0, 10, 20, 30, 50],
-  elementDisplay: 30, // elemento mostrado por nivel (aprox.)
+  defense: [0, 15, 25, 35, 50],
+  elementDisplay: [0, 30, 60, 90, 120],
+}
+export const AUGMENT_EFFECT: Record<AugmentKey, (lv: number) => string> = {
+  attack: (lv) => `+${AUGMENT_BONUS.attackTrue[lv]} ataque real`,
+  affinity: (lv) => `+${AUGMENT_BONUS.affinity[lv]}% afinidad`,
+  defense: (lv) => `+${AUGMENT_BONUS.defense[lv]} defensa`,
+  slot: (lv) => `Ranura de nivel ${lv}`,
+  health: (lv) => `Recupera vida al golpear (${['', 'I', 'II', 'III', 'IV'][lv]})`,
+  element: (lv) => `+${AUGMENT_BONUS.elementDisplay[lv]} elemento/estado`,
+}
+
+// Mejoras personalizadas (Tierras Guía): 7 niveles, cada uno con una opción.
+export type CustomKey = 'attack' | 'affinity' | 'element' | 'defense'
+export const CUSTOM_NAMES: Record<CustomKey, string> = { attack: 'Ataque', affinity: 'Afinidad', element: 'Elemento', defense: 'Defensa' }
+/** Bonus de una mejora personalizada según el nivel en que se aplica (1-7) */
+export function customBonus(key: CustomKey, level: number): number {
+  if (key === 'attack') return level === 7 ? 3 : 1 // ataque real
+  if (key === 'affinity') return level === 7 ? 3 : 1 // %
+  return 10 // elemento mostrado / defensa
 }
 
 /** Aplica "Mejora de ranura": añade una ranura nueva o sube la más pequeña. */
@@ -75,16 +91,10 @@ export function sharpnessAt(full: number[], maxed: boolean, handicraft: number):
 }
 
 // ---------------- Efectos de habilidades para el cálculo de daño ----------------
-// Iceborne: Bonus ataque a partir de nv4 suma un % del ataque base.
+// Bonus ataque (Kiranico, datos del juego v15.11): +3 por nivel; desde nv4, +5% afinidad.
 export const ATTACK_BOOST = [
-  { flat: 0, pct: 0 },
-  { flat: 3, pct: 0 },
-  { flat: 6, pct: 0 },
-  { flat: 9, pct: 0 },
-  { flat: 7, pct: 5 },
-  { flat: 8, pct: 6 },
-  { flat: 9, pct: 8 },
-  { flat: 10, pct: 10 },
+  { flat: 0, aff: 0 }, { flat: 3, aff: 0 }, { flat: 6, aff: 0 }, { flat: 9, aff: 0 },
+  { flat: 12, aff: 5 }, { flat: 15, aff: 5 }, { flat: 18, aff: 5 }, { flat: 21, aff: 5 },
 ]
 export const CRITICAL_EYE = [0, 5, 10, 15, 20, 25, 30, 40]
 export const CRITICAL_BOOST = [1.25, 1.3, 1.35, 1.4]
@@ -100,6 +110,27 @@ export const LATENT_POWER = [0, 10, 20, 30, 40, 50, 50, 60]
 export const CRITICAL_DRAW = [0, 30, 60, 100]
 export const HEROICS = [0, 0, 5, 5, 10, 15, 25, 40]
 export const COALESCENCE = [0, 12, 15, 18]
+export const NON_ELEMENTAL_BOOST = 1.05 // Iceborne
+export const BLUDGEONER = [30, 30, 25, 15] // rojo, naranja, amarillo, verde
+export const PUNISHING_DRAW_RAW = 5
+export const FORTIFY_PCT = 10 // por desmayo, hasta 2
+/** Conversión elemental: % del total de resistencias que se suma como elemento real */
+export const ELEMENT_CONVERSION = { melee: 0.05, bowgun: 0.02 }
+export const ALL_ELEMENTAL_RESISTANCE = 20
+export const DRAGONVEIN = { aff: 20, element: 80, status: 80 }
+export const TRUE_DRAGONVEIN = { aff: 40, element: 150, status: 120 }
+export const ELEMENT_ACCELERATION = { element: 60, freeElem: 2 }
+export const TRUE_ELEMENT_ACCELERATION = { element: 150, freeElem: 3 }
+/** Destreza helada: % por etapa (0-3) según arma */
+export const FROSTCRAFT: Record<string, number[]> = {
+  'great-sword': [0, 5, 15, 30], hammer: [0, 5, 15, 30], 'heavy-bowgun': [0, 10, 20, 30], other: [0, 5, 20, 25],
+}
+/** Multiplicador de crítico elemental / de estado por tipo de arma */
+const HEAVY = ['great-sword', 'hammer', 'hunting-horn', 'heavy-bowgun']
+export const critElementMult = (type: string, trueVersion: boolean) =>
+  HEAVY.includes(type) ? (trueVersion ? 1.7 : 1.5) : type === 'light-bowgun' ? (trueVersion ? 1.4 : 1.25) : trueVersion ? 1.55 : 1.35
+export const critStatusMult = (type: string, trueVersion: boolean) =>
+  HEAVY.includes(type) ? (trueVersion ? 1.6 : 1.4) : trueVersion ? 1.4 : 1.2
 /** Ataque elemental: [plano mostrado, %] */
 export const ELEMENT_ATTACK = [[0, 0], [30, 0], [60, 0], [100, 0], [100, 5], [100, 10], [100, 20]] as const
 
@@ -108,17 +139,38 @@ export const at = <T,>(table: readonly T[], lvl: number): T => table[Math.max(0,
 export type ConditionKey =
   | 'weakspot' | 'wound' | 'agitator' | 'peak' | 'resentment' | 'offensiveGuard'
   | 'maxMight' | 'latent' | 'critDraw' | 'heroics' | 'coalescence'
+  | 'elementConversion' | 'dragonvein' | 'elemAccel' | 'frostcraft' | 'fortify'
 
-export const CONDITIONS: { key: ConditionKey; es: string; skill: string }[] = [
-  { key: 'weakspot', es: 'Golpe en punto débil', skill: 'Weakness Exploit' },
-  { key: 'wound', es: 'Golpe en herida', skill: 'Weakness Exploit' },
-  { key: 'agitator', es: 'Monstruo enfurecido', skill: 'Agitator' },
-  { key: 'peak', es: 'Salud completa', skill: 'Peak Performance' },
-  { key: 'resentment', es: 'Daño rojo (temporal)', skill: 'Resentment' },
-  { key: 'offensiveGuard', es: 'Bloqueo perfecto', skill: 'Offensive Guard' },
-  { key: 'maxMight', es: 'Resistencia llena', skill: 'Maximum Might' },
-  { key: 'latent', es: 'Poder latente activo', skill: 'Latent Power' },
-  { key: 'critDraw', es: 'Ataque al desenfundar', skill: 'Critical Draw' },
-  { key: 'heroics', es: 'Salud baja', skill: 'Heroics' },
-  { key: 'coalescence', es: 'Coalescencia activa', skill: 'Coalescence' },
+export interface Condition {
+  key: ConditionKey
+  es: string
+  /** habilidades (nombre en inglés) que hacen relevante esta condición */
+  skills: string[]
+  /** si existe, la condición es un valor numérico a elegir en lugar de sí/no */
+  options?: { value: number; label: string }[]
+}
+
+export const CONDITIONS: Condition[] = [
+  { key: 'weakspot', es: 'Golpe en punto débil', skills: ['Weakness Exploit'] },
+  { key: 'wound', es: 'Golpe en herida', skills: ['Weakness Exploit'] },
+  { key: 'agitator', es: 'Monstruo enfurecido', skills: ['Agitator'] },
+  { key: 'peak', es: 'Salud completa', skills: ['Peak Performance'] },
+  { key: 'resentment', es: 'Daño rojo (temporal)', skills: ['Resentment'] },
+  { key: 'offensiveGuard', es: 'Bloqueo perfecto', skills: ['Offensive Guard'] },
+  { key: 'maxMight', es: 'Resistencia llena', skills: ['Maximum Might'] },
+  { key: 'latent', es: 'Poder latente activo', skills: ['Latent Power'] },
+  { key: 'critDraw', es: 'Ataque al desenfundar', skills: ['Critical Draw'] },
+  { key: 'heroics', es: 'Salud baja', skills: ['Heroics'] },
+  { key: 'coalescence', es: 'Coalescencia activa', skills: ['Coalescence'] },
+  { key: 'elementConversion', es: 'Conversión elemental cargada', skills: ['Element Conversion'] },
+  { key: 'dragonvein', es: 'Dracovena activa (arma desenvainada)', skills: ['Dragonvein Awakening', 'True Dragonvein Awakening'] },
+  { key: 'elemAccel', es: 'Aceleración de elemento activa', skills: ['Element Acceleration', 'True Element Acceleration'] },
+  {
+    key: 'frostcraft', es: 'Destreza helada', skills: ['Frostcraft'],
+    options: [0, 1, 2, 3].map((v) => ({ value: v, label: v ? `Etapa ${v}` : 'Sin carga' })),
+  },
+  {
+    key: 'fortify', es: 'Bonus de desmayo', skills: ['Fortify'],
+    options: [0, 1, 2].map((v) => ({ value: v, label: v ? `${v} desmayo${v > 1 ? 's' : ''}` : 'Sin desmayos' })),
+  },
 ]
