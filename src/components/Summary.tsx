@@ -21,7 +21,7 @@ export function SharpnessBar({ bars, full }: { bars: number[]; full?: number[] }
 export function StatsPanel({ build, update, computed }: { build: Build; update: Update; computed: Computed }) {
   const { data, lang } = useApp()
   const s = computed.stats
-  const relevant = CONDITIONS.filter((c) => computed.skillLevel(c.skill) > 0)
+  const relevant = CONDITIONS.filter((c) => c.skills.some((sk) => computed.skillLevel(sk) > 0))
   return (
     <section className="card stats">
       <h3>Estadísticas</h3>
@@ -52,15 +52,34 @@ export function StatsPanel({ build, update, computed }: { build: Build; update: 
           {s.sharpness && (
             <SharpnessBar bars={s.sharpness} full={computed.weapon?.sharpness ?? undefined} />
           )}
+          {s.applied.length > 0 && (
+            <div className="applied">
+              <span className="small muted">Bonus especiales aplicados:</span>
+              <ul>
+                {s.applied.map((a) => (
+                  <li key={a.label} className="small"><b>{a.label}</b> <span className="muted">{a.detail}</span></li>
+                ))}
+              </ul>
+            </div>
+          )}
           {relevant.length > 0 && (
             <div className="conds">
               <span className="small muted">Condiciones activas para el cálculo:</span>
-              {relevant.map((c) => (
-                <label key={c.key} className="check small">
-                  <input type="checkbox" checked={!!build.conditions[c.key]} onChange={(e) => update((b) => { b.conditions[c.key] = e.target.checked })} />
-                  {c.es}
-                </label>
-              ))}
+              {relevant.map((c) =>
+                c.options ? (
+                  <label key={c.key} className="check small">
+                    {c.es}:
+                    <select id={`cond-${c.key}`} className="mini" value={Number(build.conditions[c.key] ?? 0)} onChange={(e) => update((b) => { b.conditions[c.key] = Number(e.target.value) })}>
+                      {c.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </label>
+                ) : (
+                  <label key={c.key} className="check small">
+                    <input id={`cond-${c.key}`} type="checkbox" checked={!!build.conditions[c.key]} onChange={(e) => update((b) => { b.conditions[c.key] = e.target.checked })} />
+                    {c.es}
+                  </label>
+                ),
+              )}
             </div>
           )}
         </>
@@ -71,6 +90,9 @@ export function StatsPanel({ build, update, computed }: { build: Build; update: 
         {computed.res.map((r, i) => (
           <span key={i} className={r < 0 ? 'neg' : r > 0 ? 'pos' : ''}>{RES_NAMES[i]} {r > 0 ? '+' : ''}{r}</span>
         ))}
+        <span className="muted" title={`Armadura ${computed.resBreakdown.armor} · Habilidades y joyas ${computed.resBreakdown.skills} · Set ${computed.resBreakdown.set}`}>
+          Total {computed.resBreakdown.total}
+        </span>
       </div>
       <div className="small muted">Ranuras ocupadas: {computed.slots.used}/{computed.slots.total}</div>
       {computed.bonuses.length > 0 && (
