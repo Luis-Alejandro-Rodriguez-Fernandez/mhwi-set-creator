@@ -173,6 +173,8 @@ export interface Computed {
   bonuses: { bonus: number; count: number; active: { skill: number; pieces: number; on: boolean }[] }[]
   defense: number
   res: number[]
+  /** de dónde sale la resistencia elemental total */
+  resBreakdown: { armor: number; skills: number; set: number; total: number }
   augment: { used: number; capacity: number | null; over: boolean }
   stats: {
     attackDisplay: number
@@ -301,6 +303,7 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
     defense += p.def[defIdx] || p.def[1] || p.def[0]
     p.res.forEach((r, i) => (res[i] += r))
   }
+  const resFromArmor = res.reduce((a, r) => a + r, 0)
   if (weapon) {
     defense += weapon.defense + b.weapon.custom.defense
     if (isMr) defense += at(AUGMENT_BONUS.defense, b.weapon.augments.defense) + customSum('defense')
@@ -316,7 +319,10 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
     res[i] += ([0, 6, 12, 20][l] ?? 0) + defRes
     if (l >= 3) elemResDefense += 10
   })
+  const resFromSkills = res.reduce((a, r) => a + r, 0) - resFromArmor
   if (has('All Elemental Resistance')) for (let i = 0; i < 5; i++) res[i] += ALL_ELEMENTAL_RESISTANCE
+  const resFromSet = has('All Elemental Resistance') ? ALL_ELEMENTAL_RESISTANCE * 5 : 0
+  const resBreakdown = { armor: resFromArmor, skills: resFromSkills, set: resFromSet, total: res.reduce((a, r) => a + r, 0) }
   defense = Math.round(defense * (1 + defPct / 100) + defFlat + elemResDefense + supportDefense)
   if (supportDefensePct) defense = Math.round(defense * (1 + supportDefensePct / 100))
   if ((c.fortify as number) > 0 && has('Fortify')) defense = Math.round(defense * (1 + 0.15 * (c.fortify as number)))
@@ -462,7 +468,7 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
       applied.push({
         label: 'Conversión elemental',
         detail: elements.some((e) => !e.isStatus)
-          ? `+${Math.round(ecTrue * 10)} elemento (resistencia total ${totalRes})`
+          ? `+${Math.round(ecTrue * 10)} elemento: ${isBowgun ? '0,2' : '0,5'} por punto de resistencia total (${totalRes} = armadura ${resFromArmor}, habilidades y joyas ${resFromSkills >= 0 ? '+' : ''}${resFromSkills}${resFromSet ? `, set +${resFromSet}` : ''})`
           : `sin efecto: el arma no tiene elemento (resistencia total ${totalRes})`,
       })
     }
@@ -489,6 +495,7 @@ export function computeBuild(b: Build, data: GameData, lang: 'es' | 'en' = 'es')
     bonuses,
     defense,
     res,
+    resBreakdown,
     augment,
     stats,
     slots: { total: totalSlots, used: usedSlots },

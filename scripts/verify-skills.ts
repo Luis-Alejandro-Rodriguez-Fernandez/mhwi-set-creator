@@ -137,5 +137,23 @@ const check = (name: string, got: number, want: number) => {
   check('Build antigua: amuletos de poder activados por defecto (1 = sí)', old.support.charms.powercharm ? 1 : 0, 1)
 }
 
+// --- Joyas de resistencia + Conversión elemental: cada punto de resistencia = +0,5 de elemento mostrado
+{
+  const w = weaponBy((x) => x.en === 'Black Fatalis Blade')
+  const b = emptyBuild()
+  b.weapon.id = w.id
+  b.armor.head.id = armor('Escadora Wisdom α+')
+  b.armor.chest.id = armor('Escadora Soul α+')
+  b.armor.arms.id = armor('Escadora Armguards α+')
+  const before = computeBuild(b, data)
+  const hardFire = raw.decorations.find((d) => d.en === 'Hard Fire Res Jewel 4')! // Anti fuego 3 → +20
+  const waterPlus = raw.decorations.find((d) => d.en === 'Water Res Jewel+ 4')! // Anti agua 2 → +12
+  b.weapon.decos = [hardFire.id, waterPlus.id]
+  const after = computeBuild(b, data)
+  check('Joyas de resistencia: resistencia total (+32)', after.resBreakdown.total, before.resBreakdown.total + 32)
+  check('Joyas de resistencia: desglose habilidades y joyas', after.resBreakdown.skills, 32)
+  check('Joyas de resistencia: elemento por Conversión (+16)', after.stats!.elements[0].display, before.stats!.elements[0].display + 16)
+}
+
 console.log(fails ? `\n${fails} fallo(s)` : '\nTodo correcto')
 if (fails) process.exit(1)

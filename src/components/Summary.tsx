@@ -90,6 +90,9 @@ export function StatsPanel({ build, update, computed }: { build: Build; update: 
         {computed.res.map((r, i) => (
           <span key={i} className={r < 0 ? 'neg' : r > 0 ? 'pos' : ''}>{RES_NAMES[i]} {r > 0 ? '+' : ''}{r}</span>
         ))}
+        <span className="muted" title={`Armadura ${computed.resBreakdown.armor} · Habilidades y joyas ${computed.resBreakdown.skills} · Set ${computed.resBreakdown.set}`}>
+          Total {computed.resBreakdown.total}
+        </span>
       </div>
       <div className="small muted">Ranuras ocupadas: {computed.slots.used}/{computed.slots.total}</div>
       {computed.bonuses.length > 0 && (
